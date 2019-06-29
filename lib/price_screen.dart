@@ -11,9 +11,8 @@ class PriceScreen extends StatefulWidget {
 class _PriceScreenState extends State<PriceScreen> {
   String selectedCurrency = 'USD';
   int selectedPickerIndex = 0;
-  CoinData coinData = CoinData();
+  CoinHelper coinHelper = CoinHelper();
   CoinNetwork coinNetwork = CoinNetwork();
-  String conversionRatio = '?';
 
   @override
   void initState() {
@@ -24,7 +23,7 @@ class _PriceScreenState extends State<PriceScreen> {
 
   CupertinoPicker getCupertinoPicker() {
     return CupertinoPicker(
-      children: coinData.getCupertinoCoinList(),
+      children: coinHelper.getCupertinoCoinList(),
       itemExtent: 32.0,
       onSelectedItemChanged: (selectedPickerIndex) {
         print(selectedPickerIndex);
@@ -35,22 +34,26 @@ class _PriceScreenState extends State<PriceScreen> {
   DropdownButton<String> getAndroidPicker() {
     return DropdownButton<String>(
         value: selectedCurrency,
-        items: coinData.getDropDownCoinList(),
+        items: coinHelper.getDropDownCoinList(),
         onChanged: (value) async {
           getCoinConversionRatio(value);
           setState(() {
-            conversionRatio = '?';
+            for (var crypto in coinHelper.coinDataList) {
+              crypto.conversionValue = '?';
+            }
             selectedCurrency = value;
           });
         });
   }
 
   void getCoinConversionRatio(String exchangeCurrency) async {
-    var ret =
-        await coinNetwork.getCoinConversionValue('BTC' + exchangeCurrency);
-    setState(() {
-      conversionRatio = (ret > -1) ? ret.toString() : 'NA';
-    });
+    for (var crypto in coinHelper.coinDataList) {
+      var ret = await coinNetwork
+          .getCoinConversionValue(crypto.crypto + exchangeCurrency);
+      setState(() {
+        crypto.conversionValue = (ret > -1) ? ret.toString() : 'NA';
+      });
+    }
   }
 
   @override
@@ -63,32 +66,15 @@ class _PriceScreenState extends State<PriceScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Padding(
-            padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
-            child: Card(
-              color: Colors.lightBlueAccent,
-              elevation: 5.0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
-                child: Text(
-                  '1 BTC = $conversionRatio $selectedCurrency',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 20.0,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: coinHelper.getCryptoPadding(selectedCurrency),
           ),
           Container(
             height: 150.0,
             alignment: Alignment.center,
             padding: EdgeInsets.only(bottom: 30.0),
-            color: Colors.lightBlue,
+            //color: Colors.lightBlue,
             child: Platform.isIOS ? getCupertinoPicker() : getAndroidPicker(),
           ),
         ],

@@ -35,6 +35,15 @@ const List<String> cryptoList = [
 ];
 
 class CoinData {
+  String crypto;
+  String conversionValue;
+
+  CoinData({this.crypto, this.conversionValue});
+}
+
+class CoinHelper {
+  List<CoinData> coinDataList = [];
+
   List<DropdownMenuItem> getDropDownCoinList() {
     List<DropdownMenuItem<String>> currencyList = [];
 
@@ -54,6 +63,44 @@ class CoinData {
       currencyList.add(Text(item));
     }
     return currencyList;
+  }
+
+  List<Widget> getCryptoPadding(String exchangeTitle) {
+    List<Widget> widgetList = [];
+
+    for (var item in coinDataList) {
+      widgetList.add(Padding(
+        padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
+        child: Card(
+          color: Colors.black87,
+          elevation: 5.0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
+            child: _getCryptoText(item, exchangeTitle),
+          ),
+        ),
+      ));
+    }
+
+    return widgetList;
+  }
+
+  Text _getCryptoText(CoinData item, String exchangeTitle) {
+    return Text('1 ${item.crypto} = ${item.conversionValue} $exchangeTitle',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 20.0,
+          color: Colors.amber,
+        ));
+  }
+
+  CoinHelper() {
+    for (String crypto in cryptoList) {
+      coinDataList.add(CoinData(crypto: crypto, conversionValue: '?'));
+    }
   }
 }
 
